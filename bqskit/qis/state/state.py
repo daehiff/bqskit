@@ -30,10 +30,10 @@ class StateVector(NDArrayOperatorsMixin):
     """A vector representing a pure quantum state."""
 
     def __init__(
-        self,
-        input: StateLike,
-        radixes: Sequence[int] = [],
-        check_arguments: bool = True,
+            self,
+            input: StateLike,
+            radixes: Sequence[int] = [],
+            check_arguments: bool = True,
     ) -> None:
         """
         Constructs a `StateVector` from the supplied vector.
@@ -147,7 +147,7 @@ class StateVector(NDArrayOperatorsMixin):
 
     def get_probs(self) -> tuple[float, ...]:
         """Return the probabilities for each classical outcome."""
-        return tuple(np.abs(elem)**2 for elem in self)
+        return tuple(np.abs(elem) ** 2 for elem in self)
 
     def is_qubit_only(self) -> bool:
         """Return true if this unitary can only act on qubits."""
@@ -186,9 +186,11 @@ class StateVector(NDArrayOperatorsMixin):
         from bqskit.qis.state import StateSystem
         if isinstance(V, StateSystem):
             return False
-
-        if not np.allclose(np.sum(np.square(np.abs(V))), 1, rtol=0, atol=tol):
-            _logger.debug('Failed pure state criteria.')
+        try:
+            if not np.allclose(np.sum(np.square(np.abs(V))), 1, rtol=0, atol=tol):
+                _logger.debug('Failed pure state criteria.')
+                return False
+        except:
             return False
 
         return True
@@ -259,11 +261,11 @@ class StateVector(NDArrayOperatorsMixin):
         return NotImplemented
 
     def apply(
-        self,
-        utry: UnitaryMatrix,
-        location: CircuitLocationLike,
-        inverse: bool = False,
-        check_arguments: bool = True,
+            self,
+            utry: UnitaryMatrix,
+            location: CircuitLocationLike,
+            inverse: bool = False,
+            check_arguments: bool = True,
     ) -> None:
         """
 
@@ -370,8 +372,8 @@ class StateVector(NDArrayOperatorsMixin):
         return dist if dist > 0.0 else 0.0
 
     def __array__(
-        self,
-        dtype: np.typing.DTypeLike = np.complex128,
+            self,
+            dtype: np.typing.DTypeLike = np.complex128,
     ) -> npt.NDArray[np.complex128]:
         """Implements NumPy API for the StateVector class."""
         if dtype != np.complex128:
@@ -380,11 +382,11 @@ class StateVector(NDArrayOperatorsMixin):
         return self._vec
 
     def __array_ufunc__(
-        self,
-        ufunc: np.ufunc,
-        method: str,
-        *inputs: npt.NDArray[Any],
-        **kwargs: Any,
+            self,
+            ufunc: np.ufunc,
+            method: str,
+            *inputs: npt.NDArray[Any],
+            **kwargs: Any,
     ) -> StateVector | npt.NDArray[np.complex128]:
         """Implements NumPy API for the StateVector class."""
         if method != '__call__':
@@ -405,18 +407,18 @@ class StateVector(NDArrayOperatorsMixin):
         # if only states are involved
         # and state vectors are closed under the specific operation.
         convert_back = (
-            not non_state_involved and ufunc.__name__ == 'conjugate'
-            or (
-                ufunc.__name__ == 'multiply'
-                and all(
+                not non_state_involved and ufunc.__name__ == 'conjugate'
+                or (
+                        ufunc.__name__ == 'multiply'
+                        and all(
                     np.isscalar(input) or isinstance(input, StateVector)
                     for input in inputs
                 )
-                and all(
+                        and all(
                     np.abs(np.abs(input) - 1) <= 1e-14
                     for input in inputs if np.isscalar(input)
                 )
-            )
+                )
         )
 
         if convert_back:
